@@ -12,14 +12,11 @@ export function MarkdownDisplay({ content, className }: MarkdownDisplayProps) {
   // Memoize the markdown rendering to avoid unnecessary re-renders
   const renderedMarkdown = useMemo(() => {
     return (
-      <ReactMarkdown 
-        className={cn(
-          "prose prose-sm dark:prose-invert max-w-none",
-          className
-        )}
-      >
-        {content}
-      </ReactMarkdown>
+      <div className={cn("markdown-content", className)}>
+        <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none">
+          {content}
+        </ReactMarkdown>
+      </div>
     );
   }, [content, className]);
   

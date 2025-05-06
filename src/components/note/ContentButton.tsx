@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNotebooks } from "@/contexts/NotebooksContext";
 import { ChecklistItem, ContentItem, TableData } from "@/types";
-import { Plus, Image, FileText, Link as LinkIcon, Pencil, CheckSquare, FileCode, Markdown, Table } from "lucide-react";
+import { Plus, Image, FileText, Link as LinkIcon, Pencil, CheckSquare, FileCode, Table } from "lucide-react";
 import { getNewId } from "@/lib/data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -386,7 +386,7 @@ export function ContentButton({ noteId, lineId }: ContentButtonProps) {
             <span>Add Checklist</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsMarkdownDialogOpen(true)}>
-            <Markdown className="h-4 w-4 mr-2" />
+            <FileCode className="h-4 w-4 mr-2" />
             <span>Add Markdown</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsTableDialogOpen(true)}>
