@@ -6,6 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotebooks } from "@/contexts/NotebooksContext";
+import { MarkdownDisplay } from "./MarkdownDisplay";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface ContentDisplayProps {
   content: ContentItem;
@@ -33,6 +35,10 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
         return "Link: " + content.value;
       case "checklist":
         return "Checklist";
+      case "markdown":
+        return "Markdown";
+      case "table":
+        return "Table";
       default:
         return "Content";
     }
@@ -41,6 +47,12 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
   const handleCheckboxChange = (item: ChecklistItem, checked: boolean) => {
     if (updateChecklistItem) {
       updateChecklistItem(noteId, lineId, item.id, { ...item, checked });
+    }
+  };
+
+  const handleNestedCheckboxChange = (parentId: string, item: ChecklistItem, checked: boolean) => {
+    if (updateChecklistItem) {
+      updateChecklistItem(noteId, lineId, parentId, item.id, { ...item, checked });
     }
   };
 
@@ -124,24 +136,85 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
           <div className={cn("content-preview p-3", !isExpanded && "hidden")}>
             <div className="space-y-2">
               {content.checklistItems?.map((item) => (
-                <div key={item.id} className="flex items-center gap-2">
-                  <Checkbox 
-                    id={item.id} 
-                    checked={item.checked}
-                    onCheckedChange={(checked) => handleCheckboxChange(item, checked === true)}
-                  />
-                  <label 
-                    htmlFor={item.id} 
-                    className={cn(
-                      "text-sm",
-                      item.checked && "line-through text-muted-foreground"
-                    )}
-                  >
-                    {item.text}
-                  </label>
+                <div key={item.id} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox 
+                      id={`${item.id}-check`}
+                      checked={item.checked}
+                      onCheckedChange={(checked) => handleCheckboxChange(item, checked === true)}
+                    />
+                    <label 
+                      htmlFor={`${item.id}-check`}
+                      className={cn(
+                        "text-sm",
+                        item.checked && "line-through text-muted-foreground"
+                      )}
+                    >
+                      {item.text}
+                    </label>
+                  </div>
+                  
+                  {/* Nested items */}
+                  {item.children && item.children.length > 0 && (
+                    <div className="ml-6 space-y-2 border-l-2 border-muted pl-3">
+                      {item.children.map((child) => (
+                        <div key={child.id} className="flex items-center gap-2">
+                          <Checkbox 
+                            id={`${child.id}-check`}
+                            checked={child.checked}
+                            onCheckedChange={(checked) => handleNestedCheckboxChange(item.id, child, checked === true)}
+                          />
+                          <label 
+                            htmlFor={`${child.id}-check`}
+                            className={cn(
+                              "text-sm",
+                              child.checked && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {child.text}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
+          </div>
+        );
+      case "markdown":
+        return (
+          <div className={cn("content-preview p-3", !isExpanded && "hidden")}>
+            <MarkdownDisplay content={content.value} />
+          </div>
+        );
+      case "table":
+        return (
+          <div className={cn("content-preview p-3", !isExpanded && "hidden")}>
+            {content.tableData && (
+              <Table className="border border-border">
+                <TableHeader>
+                  <TableRow>
+                    {content.tableData.headers.map((header, index) => (
+                      <TableHead key={index} className="border border-border">
+                        {header}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {content.tableData.rows.map((row, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {row.map((cell, cellIndex) => (
+                        <TableCell key={cellIndex} className="border border-border">
+                          {cell}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         );
       default:

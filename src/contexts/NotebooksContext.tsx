@@ -20,7 +20,7 @@ interface NotebooksContextType {
   addTagToLine: (noteId: string, lineId: string, tag: string) => void;
   linkNotes: (sourceNoteId: string, targetNoteId: string) => void;
   unlinkNotes: (sourceNoteId: string, targetNoteId: string) => void;
-  updateChecklistItem: (noteId: string, lineId: string, itemId: string, updatedItem: ChecklistItem) => void;
+  updateChecklistItem: (noteId: string, lineId: string, parentId: string, itemId: string, updatedItem: ChecklistItem) => void;
 }
 
 const NotebooksContext = createContext<NotebooksContextType | undefined>(undefined);
@@ -345,7 +345,13 @@ export const NotebooksProvider = ({ children }: { children: ReactNode }) => {
     toast.success("Notes unlinked!");
   };
 
-  const updateChecklistItem = (noteId: string, lineId: string, itemId: string, updatedItem: ChecklistItem) => {
+  const updateChecklistItem = (
+    noteId: string, 
+    lineId: string, 
+    parentId: string, 
+    childId?: string, 
+    updatedItem?: ChecklistItem
+  ) => {
     setNotebooks(notebooks.map(notebook => {
       return {
         ...notebook,
@@ -355,15 +361,37 @@ export const NotebooksProvider = ({ children }: { children: ReactNode }) => {
               ...note,
               lines: note.lines.map(line => {
                 if (line.id === lineId && line.content && line.content.checklistItems) {
-                  return {
-                    ...line,
-                    content: {
-                      ...line.content,
-                      checklistItems: line.content.checklistItems.map(item => 
-                        item.id === itemId ? updatedItem : item
-                      )
-                    }
-                  };
+                  if (!childId) {
+                    // Updating top-level item
+                    return {
+                      ...line,
+                      content: {
+                        ...line.content,
+                        checklistItems: line.content.checklistItems.map(item => 
+                          item.id === parentId ? (updatedItem as ChecklistItem) : item
+                        )
+                      }
+                    };
+                  } else {
+                    // Updating nested item
+                    return {
+                      ...line,
+                      content: {
+                        ...line.content,
+                        checklistItems: line.content.checklistItems.map(item => {
+                          if (item.id === parentId && item.children) {
+                            return {
+                              ...item,
+                              children: item.children.map(child => 
+                                child.id === childId ? (updatedItem as ChecklistItem) : child
+                              )
+                            };
+                          }
+                          return item;
+                        })
+                      }
+                    };
+                  }
                 }
                 return line;
               }),
@@ -380,15 +408,37 @@ export const NotebooksProvider = ({ children }: { children: ReactNode }) => {
         ...currentNote,
         lines: currentNote.lines.map(line => {
           if (line.id === lineId && line.content && line.content.checklistItems) {
-            return {
-              ...line,
-              content: {
-                ...line.content,
-                checklistItems: line.content.checklistItems.map(item => 
-                  item.id === itemId ? updatedItem : item
-                )
-              }
-            };
+            if (!childId) {
+              // Updating top-level item
+              return {
+                ...line,
+                content: {
+                  ...line.content,
+                  checklistItems: line.content.checklistItems.map(item => 
+                    item.id === parentId ? (updatedItem as ChecklistItem) : item
+                  )
+                }
+              };
+            } else {
+              // Updating nested item
+              return {
+                ...line,
+                content: {
+                  ...line.content,
+                  checklistItems: line.content.checklistItems.map(item => {
+                    if (item.id === parentId && item.children) {
+                      return {
+                        ...item,
+                        children: item.children.map(child => 
+                          child.id === childId ? (updatedItem as ChecklistItem) : child
+                        )
+                      };
+                    }
+                    return item;
+                  })
+                }
+              };
+            }
           }
           return line;
         }),
