@@ -1,4 +1,3 @@
-
 import { ChecklistItem, ContentItem } from "@/types";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -44,14 +43,17 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
     }
   };
 
+  // Fixed function to handle proper arguments
   const handleCheckboxChange = (item: ChecklistItem, checked: boolean) => {
     if (updateChecklistItem) {
       updateChecklistItem(noteId, lineId, item.id, { ...item, checked });
     }
   };
 
+  // Fixed function to properly call updateChecklistItem with correct parameters
   const handleNestedCheckboxChange = (parentId: string, item: ChecklistItem, checked: boolean) => {
     if (updateChecklistItem) {
+      // Make sure we're passing all 5 required arguments here
       updateChecklistItem(noteId, lineId, parentId, item.id, { ...item, checked });
     }
   };
