@@ -1,17 +1,41 @@
 
 import { ContentItem } from "@/types";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ContentDisplayProps {
   content: ContentItem;
 }
 
 export function ContentDisplay({ content }: ContentDisplayProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const getContentTypeName = () => {
+    switch (content.type) {
+      case "image":
+        return "Image";
+      case "drawing":
+        return "Drawing";
+      case "file":
+        return "File: " + content.value;
+      case "link":
+        return "Link: " + content.value;
+      default:
+        return "Content";
+    }
+  };
+
   const renderedContent = useMemo(() => {
     switch (content.type) {
       case "image":
         return (
-          <div className="content-preview">
+          <div className={cn("content-preview", !isExpanded && "hidden")}>
             <img 
               src={content.value} 
               alt="Uploaded image" 
@@ -21,7 +45,7 @@ export function ContentDisplay({ content }: ContentDisplayProps) {
         );
       case "drawing":
         return (
-          <div className="content-preview">
+          <div className={cn("content-preview", !isExpanded && "hidden")}>
             <img 
               src={content.value} 
               alt="Drawing" 
@@ -31,7 +55,7 @@ export function ContentDisplay({ content }: ContentDisplayProps) {
         );
       case "file":
         return (
-          <div className="content-preview p-3 flex items-center gap-2 bg-muted/50">
+          <div className={cn("content-preview p-3 flex items-center gap-2 bg-muted/50", !isExpanded && "hidden")}>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-5 w-5 text-muted-foreground" 
@@ -51,7 +75,7 @@ export function ContentDisplay({ content }: ContentDisplayProps) {
         );
       case "link":
         return (
-          <div className="content-preview p-3 flex items-center gap-2 bg-muted/50">
+          <div className={cn("content-preview p-3 flex items-center gap-2 bg-muted/50", !isExpanded && "hidden")}>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-5 w-5 text-muted-foreground" 
@@ -85,7 +109,24 @@ export function ContentDisplay({ content }: ContentDisplayProps) {
       default:
         return null;
     }
-  }, [content]);
+  }, [content, isExpanded]);
 
-  return renderedContent;
+  return (
+    <div className="mt-1 ml-1">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={toggleExpand} 
+        className="h-6 text-xs px-2 flex items-center gap-1 bg-muted/50 hover:bg-muted"
+      >
+        {getContentTypeName()}
+        {isExpanded ? (
+          <ChevronUp className="h-3 w-3" />
+        ) : (
+          <ChevronDown className="h-3 w-3" />
+        )}
+      </Button>
+      {renderedContent}
+    </div>
+  );
 }
