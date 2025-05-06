@@ -159,7 +159,11 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
             </div>
             
             {line.content && (
-              <ContentDisplay content={line.content} />
+              <ContentDisplay 
+                content={line.content} 
+                noteId={noteId} 
+                lineId={line.id} 
+              />
             )}
             
             {line.tags.length > 0 && (

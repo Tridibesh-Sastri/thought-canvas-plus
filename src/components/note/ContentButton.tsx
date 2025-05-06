@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,8 +7,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNotebooks } from "@/contexts/NotebooksContext";
-import { ContentItem } from "@/types";
-import { Plus, Image, FileText, Link as LinkIcon, Pencil } from "lucide-react";
+import { ChecklistItem, ContentItem } from "@/types";
+import { Plus, Image, FileText, Link as LinkIcon, Pencil, CheckSquare } from "lucide-react";
 import { getNewId } from "@/lib/data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -26,6 +25,10 @@ export function ContentButton({ noteId, lineId }: ContentButtonProps) {
   const [linkUrl, setLinkUrl] = useState("");
   const [isDrawingDialogOpen, setIsDrawingDialogOpen] = useState(false);
   const [drawingData, setDrawingData] = useState("");
+  const [isChecklistDialogOpen, setIsChecklistDialogOpen] = useState(false);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([
+    { id: getNewId("item"), text: "", checked: false }
+  ]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -83,6 +86,45 @@ export function ContentButton({ noteId, lineId }: ContentButtonProps) {
     }
   };
 
+  const handleAddChecklistItem = () => {
+    setChecklistItems([
+      ...checklistItems,
+      { id: getNewId("item"), text: "", checked: false }
+    ]);
+  };
+
+  const handleUpdateChecklistItem = (id: string, text: string) => {
+    setChecklistItems(
+      checklistItems.map(item => 
+        item.id === id ? { ...item, text } : item
+      )
+    );
+  };
+
+  const handleRemoveChecklistItem = (id: string) => {
+    setChecklistItems(
+      checklistItems.filter(item => item.id !== id)
+    );
+  };
+
+  const handleSaveChecklist = () => {
+    // Filter out empty items
+    const validItems = checklistItems.filter(item => item.text.trim());
+    
+    if (validItems.length > 0) {
+      const content: ContentItem = {
+        id: getNewId("content"),
+        type: "checklist",
+        value: "Checklist",
+        createdAt: new Date().toISOString(),
+        checklistItems: validItems,
+      };
+      addContentToLine(noteId, lineId, content);
+      setChecklistItems([{ id: getNewId("item"), text: "", checked: false }]);
+      setIsChecklistDialogOpen(false);
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -119,6 +161,10 @@ export function ContentButton({ noteId, lineId }: ContentButtonProps) {
           <DropdownMenuItem onClick={() => setIsDrawingDialogOpen(true)}>
             <Pencil className="h-4 w-4 mr-2" />
             <span>Create Drawing</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsChecklistDialogOpen(true)}>
+            <CheckSquare className="h-4 w-4 mr-2" />
+            <span>Add Checklist</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -172,6 +218,57 @@ export function ContentButton({ noteId, lineId }: ContentButtonProps) {
               </Button>
               <Button onClick={handleDrawingSave} disabled={!drawingData}>
                 Save Drawing
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Checklist Dialog */}
+      <Dialog open={isChecklistDialogOpen} onOpenChange={setIsChecklistDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Checklist</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              {checklistItems.map((item, index) => (
+                <div key={item.id} className="flex items-center gap-2">
+                  <Input
+                    value={item.text}
+                    onChange={(e) => handleUpdateChecklistItem(item.id, e.target.value)}
+                    placeholder={`Item ${index + 1}`}
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleRemoveChecklistItem(item.id)}
+                    disabled={checklistItems.length === 1}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                type="button" 
+                onClick={handleAddChecklistItem}
+                className="w-full mt-2"
+              >
+                Add Item
+              </Button>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsChecklistDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveChecklist} 
+                disabled={checklistItems.every(item => !item.text.trim())}
+              >
+                Save Checklist
               </Button>
             </div>
           </div>

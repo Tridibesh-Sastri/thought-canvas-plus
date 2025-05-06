@@ -1,11 +1,18 @@
 
-export type ContentType = 'image' | 'drawing' | 'file' | 'link' | 'text';
+export type ContentType = 'image' | 'drawing' | 'file' | 'link' | 'text' | 'checklist';
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
 
 export interface ContentItem {
   id: string;
   type: ContentType;
   value: string;
   createdAt: string;
+  checklistItems?: ChecklistItem[];
 }
 
 export interface NoteLine {

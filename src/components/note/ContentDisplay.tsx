@@ -1,15 +1,20 @@
 
-import { ContentItem } from "@/types";
+import { ChecklistItem, ContentItem } from "@/types";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNotebooks } from "@/contexts/NotebooksContext";
 
 interface ContentDisplayProps {
   content: ContentItem;
+  noteId: string;
+  lineId: string;
 }
 
-export function ContentDisplay({ content }: ContentDisplayProps) {
+export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps) {
+  const { updateChecklistItem } = useNotebooks();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpand = () => {
@@ -26,8 +31,16 @@ export function ContentDisplay({ content }: ContentDisplayProps) {
         return "File: " + content.value;
       case "link":
         return "Link: " + content.value;
+      case "checklist":
+        return "Checklist";
       default:
         return "Content";
+    }
+  };
+
+  const handleCheckboxChange = (item: ChecklistItem, checked: boolean) => {
+    if (updateChecklistItem) {
+      updateChecklistItem(noteId, lineId, item.id, { ...item, checked });
     }
   };
 
@@ -106,10 +119,35 @@ export function ContentDisplay({ content }: ContentDisplayProps) {
             </a>
           </div>
         );
+      case "checklist":
+        return (
+          <div className={cn("content-preview p-3", !isExpanded && "hidden")}>
+            <div className="space-y-2">
+              {content.checklistItems?.map((item) => (
+                <div key={item.id} className="flex items-center gap-2">
+                  <Checkbox 
+                    id={item.id} 
+                    checked={item.checked}
+                    onCheckedChange={(checked) => handleCheckboxChange(item, checked === true)}
+                  />
+                  <label 
+                    htmlFor={item.id} 
+                    className={cn(
+                      "text-sm",
+                      item.checked && "line-through text-muted-foreground"
+                    )}
+                  >
+                    {item.text}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
-  }, [content, isExpanded]);
+  }, [content, isExpanded, handleCheckboxChange]);
 
   return (
     <div className="mt-1 ml-1">

@@ -1,6 +1,5 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Notebook, Note, NoteLine, ContentItem } from "@/types";
+import { Notebook, Note, NoteLine, ContentItem, ChecklistItem } from "@/types";
 import { loadNotebooks, saveNotebooks, getNewId } from "@/lib/data";
 import { toast } from "@/components/ui/sonner";
 
@@ -21,6 +20,7 @@ interface NotebooksContextType {
   addTagToLine: (noteId: string, lineId: string, tag: string) => void;
   linkNotes: (sourceNoteId: string, targetNoteId: string) => void;
   unlinkNotes: (sourceNoteId: string, targetNoteId: string) => void;
+  updateChecklistItem: (noteId: string, lineId: string, itemId: string, updatedItem: ChecklistItem) => void;
 }
 
 const NotebooksContext = createContext<NotebooksContextType | undefined>(undefined);
@@ -345,6 +345,58 @@ export const NotebooksProvider = ({ children }: { children: ReactNode }) => {
     toast.success("Notes unlinked!");
   };
 
+  const updateChecklistItem = (noteId: string, lineId: string, itemId: string, updatedItem: ChecklistItem) => {
+    setNotebooks(notebooks.map(notebook => {
+      return {
+        ...notebook,
+        notes: notebook.notes.map(note => {
+          if (note.id === noteId) {
+            return {
+              ...note,
+              lines: note.lines.map(line => {
+                if (line.id === lineId && line.content && line.content.checklistItems) {
+                  return {
+                    ...line,
+                    content: {
+                      ...line.content,
+                      checklistItems: line.content.checklistItems.map(item => 
+                        item.id === itemId ? updatedItem : item
+                      )
+                    }
+                  };
+                }
+                return line;
+              }),
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return note;
+        })
+      };
+    }));
+
+    if (currentNote?.id === noteId) {
+      setCurrentNote({
+        ...currentNote,
+        lines: currentNote.lines.map(line => {
+          if (line.id === lineId && line.content && line.content.checklistItems) {
+            return {
+              ...line,
+              content: {
+                ...line.content,
+                checklistItems: line.content.checklistItems.map(item => 
+                  item.id === itemId ? updatedItem : item
+                )
+              }
+            };
+          }
+          return line;
+        }),
+        updatedAt: new Date().toISOString()
+      });
+    }
+  };
+
   return (
     <NotebooksContext.Provider
       value={{
@@ -364,6 +416,7 @@ export const NotebooksProvider = ({ children }: { children: ReactNode }) => {
         addTagToLine,
         linkNotes,
         unlinkNotes,
+        updateChecklistItem,
       }}
     >
       {children}
