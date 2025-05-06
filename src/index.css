@@ -103,7 +103,7 @@
 
 @layer components {
   .note-line {
-    @apply flex items-center gap-2 w-full py-2 transition-all relative group;
+    @apply flex items-center gap-2 w-full py-2 transition-all relative;
   }
 
   .note-line:hover .add-content-button {
