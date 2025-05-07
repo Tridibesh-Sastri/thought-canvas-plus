@@ -14,7 +14,6 @@ export function MarkdownDisplay({ content, className }: MarkdownDisplayProps) {
     return (
       <div className={cn("markdown-content", className)}>
         {/* The newer version of react-markdown doesn't accept className directly */}
-        {/* We need to use the wrapper div for styling instead */}
         <div className="prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "./button"
 
 const floatingWindowVariants = cva(
-  "fixed z-50 rounded-lg border bg-background/95 backdrop-blur-sm shadow-lg transition-all",
+  "fixed z-50 rounded-lg border shadow-lg transition-all",
   {
     variants: {
       position: {
@@ -37,21 +37,89 @@ export interface FloatingWindowProps
   onClose: () => void
   onMinimize?: () => void
   title?: string
+  minimized?: boolean
 }
 
 const FloatingWindow = React.forwardRef<HTMLDivElement, FloatingWindowProps>(
-  ({ className, position, size, open, onClose, onMinimize, title, children, ...props }, ref) => {
+  ({ className, position, size, open, onClose, onMinimize, title, minimized = false, children, ...props }, ref) => {
+    const [isDragging, setIsDragging] = React.useState(false)
+    const [position_, setPosition] = React.useState({ x: 0, y: 0 })
+    const [initialPos, setInitialPos] = React.useState({ x: 0, y: 0 })
+    const dragRef = React.useRef<HTMLDivElement>(null)
+
+    React.useEffect(() => {
+      if (!open) return
+      // Reset position when opening
+      setPosition({ x: 0, y: 0 })
+    }, [open])
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+      // Only start dragging when clicking on the header (not buttons)
+      if ((e.target as HTMLElement).closest('button')) return
+      
+      setIsDragging(true)
+      setInitialPos({ 
+        x: e.clientX - position_.x, 
+        y: e.clientY - position_.y 
+      })
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      
+      setPosition({
+        x: e.clientX - initialPos.x,
+        y: e.clientY - initialPos.y
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    React.useEffect(() => {
+      if (isDragging) {
+        document.addEventListener('mousemove', handleMouseMove)
+        document.addEventListener('mouseup', handleMouseUp)
+      } else {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }, [isDragging, initialPos])
+
     if (!open) return null
+
+    const windowStyle = {
+      transform: position ? `translate(${position_.x}px, ${position_.y}px)` : undefined,
+      cursor: isDragging ? 'grabbing' : 'auto',
+    }
 
     return (
       <>
-        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={!isDragging ? onClose : undefined} 
+        />
         <div
           ref={ref}
-          className={cn(floatingWindowVariants({ position, size }), className)}
+          className={cn(
+            floatingWindowVariants({ position, size }), 
+            "bg-background/80", // Transparent background
+            className
+          )}
+          style={windowStyle}
           {...props}
         >
-          <div className="flex items-center justify-between border-b p-3">
+          <div 
+            ref={dragRef}
+            className="flex items-center justify-between border-b p-3 cursor-grab"
+            onMouseDown={handleMouseDown}
+          >
             <h3 className="text-sm font-medium">{title || "Content"}</h3>
             <div className="flex items-center gap-1">
               {onMinimize && (
@@ -66,9 +134,11 @@ const FloatingWindow = React.forwardRef<HTMLDivElement, FloatingWindowProps>(
               </Button>
             </div>
           </div>
-          <div className="p-4 overflow-auto" style={{ maxHeight: 'calc(80vh - 3rem)' }}>
-            {children}
-          </div>
+          {!minimized && (
+            <div className="p-4 overflow-auto" style={{ maxHeight: 'calc(80vh - 3rem)' }}>
+              {children}
+            </div>
+          )}
         </div>
       </>
     )

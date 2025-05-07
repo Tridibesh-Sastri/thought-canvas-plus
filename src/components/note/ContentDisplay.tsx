@@ -1,3 +1,4 @@
+
 import { ChecklistItem, ContentItem } from "@/types";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
   const { updateChecklistItem } = useNotebooks();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFloatingWindowOpen, setIsFloatingWindowOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const toggleExpand = () => {
     if (!isFloatingWindowOpen) {
@@ -28,11 +30,17 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
 
   const openFloatingWindow = () => {
     setIsFloatingWindowOpen(true);
+    setIsMinimized(false);
     setIsExpanded(false);
   };
 
   const closeFloatingWindow = () => {
     setIsFloatingWindowOpen(false);
+    setIsMinimized(false);
+  };
+
+  const minimizeWindow = () => {
+    setIsMinimized(!isMinimized);
   };
 
   const getContentTypeName = () => {
@@ -271,6 +279,8 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
       <FloatingWindow
         open={isFloatingWindowOpen}
         onClose={closeFloatingWindow}
+        onMinimize={minimizeWindow}
+        minimized={isMinimized}
         title={getContentTypeName()}
         size="auto"
       >
