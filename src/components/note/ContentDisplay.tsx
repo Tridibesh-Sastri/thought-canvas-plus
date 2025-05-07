@@ -56,17 +56,17 @@ export function ContentDisplay({ content, noteId, lineId }: ContentDisplayProps)
     }
   };
 
-  // Fixed function to handle proper arguments
+  // Fixed function to include the missing parentId parameter
   const handleCheckboxChange = (item: ChecklistItem, checked: boolean) => {
     if (updateChecklistItem) {
-      updateChecklistItem(noteId, lineId, item.id, { ...item, checked });
+      // For top-level items, we need to pass null or undefined for parentId
+      updateChecklistItem(noteId, lineId, null, item.id, { ...item, checked });
     }
   };
 
-  // Fixed function to properly call updateChecklistItem with correct parameters
+  // Fixed function to properly call updateChecklistItem with all required parameters
   const handleNestedCheckboxChange = (parentId: string, item: ChecklistItem, checked: boolean) => {
     if (updateChecklistItem) {
-      // Make sure we're passing all 5 required arguments here
       updateChecklistItem(noteId, lineId, parentId, item.id, { ...item, checked });
     }
   };
