@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useNotebooks } from "@/contexts/NotebooksContext";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, FileJson } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -25,6 +25,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -52,11 +61,23 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-16 items-center px-4 sm:px-6">
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2 mr-6">
           <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">
             ThoughtCanvas+
           </span>
         </Link>
+        
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <Link to="/json-editor" className={navigationMenuTriggerStyle()}>
+                <FileJson className="h-4 w-4 mr-2" />
+                JSON Editor
+              </Link>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+        
         <div className="flex-1" />
         <div className="flex items-center space-x-4">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
